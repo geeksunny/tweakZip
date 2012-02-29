@@ -1,0 +1,31 @@
+tweakZip
+---------
+tweakZip is a cross-platform program written in Python that creates a customized `update.zip` file for flashing to your Android device.
+
+Using tweakZip
+---------------
+Creating your custom zip file is a very simple process.
+
+1) Place any files you want your zip file to ADD into the 'data' or 'system' directories.
+2) Create the list of files you want your zip to REMOVE in the tweakZip program (menu option #1)
+3) Generate your zip file by selecting menu option #3 in tweakZip
+
+Requirements
+-------------
+To use tweakZip, You must have...
+
+On Linux:
+1) 7zip
+2) Java
+3) Python
+
+On Windows:
+1) 7zip (7za.exe, to be in the same directory as tweakZip)
+2) Java
+3) Python (Not required if running a pre-compiled .exe file)
+
+Other required files will be downloadable with an included script. Until then...
+ - 4 directories must exist: META-INF, configs, data, system
+ - 7za.exe (the command line version of 7zip) must be in the same folder ass tweakZip if you are using Windows.
+ - signapk.jar and the corresponding certificate.pem and key.pk8 files must also be in the same directory as tweakZip, regardless of operating system.
+This file was modified by PyCharm 2.0.2 for binding GitHub repository
