@@ -1,8 +1,10 @@
 __author__ = 'Justin Swanson'
 __version__ = '0.1'
 
-import os								# for running system commands & getting directory contents
+import os								# For running system commands & getting directory contents.
 from subprocess import Popen, PIPE		# For piping system command output to the background.
+import zipfile							# For creating the zip archive file.
+import zlib								# For compressing the files while zipping them up.
 
 # Global Variables
 fileName = "tweakzip"
@@ -21,6 +23,20 @@ def lsDir(dir = "."):
 			list.append(str(os.path.join(dirname, filename)).replace('\\','/'))
 			# Runs a string replace that replaces any backslashes with forward slashes. For correct output on Windows hosts.
 	return list
+
+# TODO: Add exception catching code to this function and an exit code return.
+def makeZipFile(filename, fileList = []):
+	zf = zipfile.ZipFile(filename, mode='w')
+	for file in fileList:
+		# If the current item in fileList is a directory, scan it recursively and add each item.
+		if os.path.isdir(file):
+			dirContents = lsDir(file)
+			for dirFile in dirContents:
+				zf.write(dirFile, compress_type=zipfile.ZIP_DEFLATED)
+		# If the current item in fileList is not a directory, add it as normal.
+		else:
+			zf.write(file, compress_type=zipfile.ZIP_DEFLATED)
+	zf.close()
 
 def resetConfig():
 	global filesToRemove, commandsToRun
@@ -227,10 +243,7 @@ def buildZip():
 	fh = open('log.txt','a+b')
 	# TODO: Add error catching down here. Also logging.
 	# Create the zip file!
-	pipe = Popen(['7za', 'a', '-r', fileName+'.zip', 'commands.sh', 'data/', 'META-INF/', 'system/'], stdout=PIPE, stderr=PIPE, stdin=PIPE)
-	output = pipe.stdout.read()
-	pipe.wait()
-	fh.write(str(output))
+	makeZipFile(fileName+'.zip',['commands.sh','data','META-INF','system'])
 	print "Zip file created!"
 	pipe = Popen(['java', '-jar', 'signapk.jar', 'certificate.pem', 'key.pk8', fileName+'.zip', fileName+'_signed.zip'], stdout=PIPE, stderr=PIPE, stdin=PIPE)
 	output = pipe.stdout.read()
