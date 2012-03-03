@@ -4,7 +4,7 @@ __version__ = '0.1'
 import os								# For running system commands & getting directory contents.
 from subprocess import Popen, PIPE		# For piping system command output to the background.
 import zipfile							# For creating the zip archive file.
-import zlib								# For compressing the files while zipping them up.
+#import zlib								# For compressing the files while zipping them up.
 
 # Global Variables
 fileName = "tweakzip"
@@ -13,9 +13,11 @@ commandsToRun = []
 #filesToRemove = ["/system/app/CarHomeGoogle.apk","/system/app/Email.apk","/system/app/Exchange.apk"] #debug
 #commandsToRun = ["zram enable"] #debug
 
+### Clear screen function... clears the command prompt window.
 def cls():
 	os.system(['clear','cls'][os.name == 'nt'])
 
+### List Directory function... returns a list of all the files inside a given directory.
 def lsDir(dir = "."):
 	list = []
 	for dirname, dirnames, filenames in os.walk(dir):
@@ -24,6 +26,7 @@ def lsDir(dir = "."):
 			# Runs a string replace that replaces any backslashes with forward slashes. For correct output on Windows hosts.
 	return list
 
+### Make Zip File function... creates a zip file containing all files designated in fileList[].
 # TODO: Add exception catching code to this function and an exit code return.
 def makeZipFile(filename, fileList = []):
 	zf = zipfile.ZipFile(filename, mode='w')
@@ -38,12 +41,57 @@ def makeZipFile(filename, fileList = []):
 			zf.write(file, compress_type=zipfile.ZIP_DEFLATED)
 	zf.close()
 
+### Dependency Check function...
+# TODO: Better exception checking code...
+def depCheck():
+	# Check for the directories, and create them as needed!
+	dirCheck = ['configs','data/app','system/app','system/media','META-INF/com/google/android/']
+	for dirName in dirCheck:
+		if not os.path.isdir(dirName):
+			os.makedirs(dirName)
+	# Check for signapk.jar and related files.
+	requiredFiles = []
+	if not os.path.isfile('signapk.jar') or not os.path.isfile('certificate.pem') or not os.path.isfile('key.pk8'):
+		requiredFiles.append('signapk.zip')
+	if not os.path.isfile('META-INF/com/google/android/update-binary'):
+		requiredFiles.append('update-binary')
+	if len(requiredFiles) > 0:
+		cls()
+		print\
+		"-------------------------------------------------\n",\
+		"                 TweakZip v" + __version__ + "\n",\
+		"-------------------------------------------------\n\n",\
+		" Certain required files are not found.\n",\
+		" Would you like to automatically download them?\n",\
+		" If you choose not to, the program wil exit.\n"
+		choice = raw_input("Download required files? Y/N [Y]: ")
+		if choice in ('n','N'):
+			return False
+		else:
+			from urllib import urlretrieve	# To use to download the file.
+			for file in requiredFiles:
+				if file == 'signapk.zip':
+					urlretrieve('http://beta.h4xful.net/files/tweakZip/signapk.zip','./signapk.zip')
+					if os.path.isfile('signapk.zip'):
+						zf = zipfile.ZipFile('signapk.zip','r')
+						zf.extractall()
+						zf.close()
+					else:
+						print "Error: The file could not be downloaded successfully.\n"
+						return False
+				elif file == 'update-binary':
+					urlretrieve('http://beta.h4xful.net/files/tweakZip/update-binary','./META-INF/com/google/android/update-binary')
+
+	return True
+
+### Resets all configuration variables to be blank.
 def resetConfig():
 	global filesToRemove, commandsToRun
 	del filesToRemove[:]
 	del commandsToRun[:]
 	print "Your configuration has been reset!"
 
+### Loads configuration variables into memory from saved config files.
 def loadConfig():
 	global filesToRemove, commandsToRun, fileName
 	reprint = True
@@ -92,6 +140,7 @@ def loadConfig():
 			reprint = False
 			print "Invalid selection!"
 
+### Saves configuration variables to an config file.
 def saveConfig():
 	global fileName
 	reprint = True
@@ -166,6 +215,7 @@ def saveConfig():
 				print "There was an error saving your configuration!"
 				print "  " + str(e)
 
+### Builds and signs the update.zip file.
 def buildZip():
 	# Scan directories for the file that will be installed
 	sysFiles = lsDir("system")
@@ -252,6 +302,7 @@ def buildZip():
 	print "Zip file signed!"
 	fh.close()
 
+### Editor for the commandsToRun[] variable. TODO: Subject for removal.
 def runCommands():
 	global filesToRemove, commandsToRun
 	reprint = True
@@ -289,6 +340,7 @@ def runCommands():
 		else:
 			commandsToRun.append(entry)
 
+### Editor for the filesToRemove[] variable.
 def removeFiles():
 	global filesToRemove, commandsToRun
 	reprint = True
@@ -331,6 +383,7 @@ def removeFiles():
 			reprint = False
 			print "Invalid selection!"
 
+### Main menu of the program.
 def mainMenu():
 	reprint = True
 	while True:
@@ -370,12 +423,17 @@ def mainMenu():
 		elif entry == '7':
 			reprint = False
 			resetConfig()
-		elif entry == '9':
+		elif entry in ('9','q','Q'):
 			return True
 		else:
 			reprint = False
 			print "Invalid selection!"
 
-mainMenu()
+### Program initialization code.
+if __name__ == "__main__":
+	if depCheck():	# Check dependencies
+		mainMenu()	# Run program
+	else:
+		raw_input("The program will now exit. Press Enter to continue.")
 
 # TODO: Add checks for command line arguments. If opened with a config name passed, automatically load that particular configuration!

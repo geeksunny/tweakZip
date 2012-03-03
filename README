@@ -16,13 +16,12 @@ To use tweakZip, You must have...
 
 On Linux:
 2) Java
-3) Python
+3) Python 2.7
 
 On Windows:
 2) Java
-3) Python (Not required if running a pre-compiled .exe file)
+3) Python 2.7 (Not required if running a pre-compiled .exe file)
 
 Other required files will be downloadable with an included script. Until then...
  - 4 directories must exist: META-INF, configs, data, system
  - signapk.jar and the corresponding certificate.pem and key.pk8 files must also be in the same directory as tweakZip, regardless of operating system.
-This file was modified by PyCharm 2.0.2 for binding GitHub repository
