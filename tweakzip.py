@@ -4,12 +4,13 @@ __version__ = '0.1'
 import os								# For running system commands & getting directory contents.
 from subprocess import Popen, PIPE		# For piping system command output to the background.
 import zipfile							# For creating the zip archive file.
-#import zlib								# For compressing the files while zipping them up.
+#import zlib							# For compressing the files while zipping them up.
 
 # Global Variables
 fileName = "tweakzip"
 filesToRemove = []
 commandsToRun = []
+# Debug Variables
 #filesToRemove = ["/system/app/CarHomeGoogle.apk","/system/app/Email.apk","/system/app/Exchange.apk"] #debug
 #commandsToRun = ["zram enable"] #debug
 
@@ -436,4 +437,4 @@ if __name__ == "__main__":
 	else:
 		raw_input("The program will now exit. Press Enter to continue.")
 
-# TODO: Add checks for command line arguments. If opened with a config name passed, automatically load that particular configuration!
+# TODO: Add checks for command line arguments. If opened with a config name passed, automatically load that particular configuration.
