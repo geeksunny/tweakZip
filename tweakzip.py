@@ -9,10 +9,8 @@ import zipfile							# For creating the zip archive file.
 # Global Variables
 fileName = "tweakzip"
 filesToRemove = []
-commandsToRun = []
 # Debug Variables
 #filesToRemove = ["/system/app/CarHomeGoogle.apk","/system/app/Email.apk","/system/app/Exchange.apk"] #debug
-#commandsToRun = ["zram enable"] #debug
 
 ### Clear screen function... clears the command prompt window.
 def cls():
@@ -87,14 +85,13 @@ def depCheck():
 
 ### Resets all configuration variables to be blank.
 def resetConfig():
-	global filesToRemove, commandsToRun
+	global filesToRemove
 	del filesToRemove[:]
-	del commandsToRun[:]
 	print "Your configuration has been reset!"
 
 ### Loads configuration variables into memory from saved config files.
 def loadConfig():
-	global filesToRemove, commandsToRun, fileName
+	global filesToRemove, fileName
 	reprint = True
 	message = ''
 	while True:
@@ -128,7 +125,6 @@ def loadConfig():
 				input = fh.read()
 				cfg = input.split(':')
 				filesToRemove = cfg[0].split(',')
-				commandsToRun = cfg[1].split(',')
 				fileName = cfgFiles[int(entry)-1].replace('configs/','')
 				fh.close()
 				message = "Configuration loaded from " + cfgFiles[int(entry)-1] + "!"
@@ -182,8 +178,6 @@ def saveConfig():
 						outputStr = outputStr + file + ','
 					fh.write(outputStr[:-1] + ':')
 					outputStr = ''
-					for file in commandsToRun:
-						outputStr = outputStr + file + ','
 					fh.write(outputStr[:-1])
 					fh.close()
 					message = "Configuration saved as " + cfgFiles[int(entry)-1] + "!"
@@ -207,8 +201,6 @@ def saveConfig():
 					outputStr = outputStr + file + ','
 				fh.write(outputStr[:-1] + ':')
 				outputStr = ''
-				for file in commandsToRun:
-					outputStr = outputStr + file + ','
 				fh.write(outputStr[:-1])
 				fh.close()
 				message = "Configuration saved as " + entry + "!"
@@ -222,7 +214,7 @@ def buildZip():
 	sysFiles = lsDir("system")
 	dataFiles = lsDir("data")
 	# If there are no files to install and other instructions for the zip, abort the build proces
-	if len(sysFiles) == 0 and len(dataFiles) == 0 and len(filesToRemove) == 0 and len(commandsToRun) == 0:
+	if len(sysFiles) == 0 and len(dataFiles) == 0 and len(filesToRemove) == 0:
 		print "There is nothing to go into your zip! Nothing will be built."
 		return False
 	# Prompt for the filename
@@ -237,13 +229,10 @@ def buildZip():
 	fh.write('ui_print(" TweakZip");\n')
 	fh.write('ui_print("----------");\n')
 	fh.write('show_progress(1, 10);\n')
-#	if len(commandsToRun) > 0:
-#		fh.write('ui_print("Mounting rootfs...");\n')
-#		fh.write('run_program("/sbin/busybox", "mount", "/");\n')
-	if len(commandsToRun) > 0 or len(sysFiles) > 0:
+	if len(sysFiles) > 0:
 		fh.write('ui_print("Mounting system...");\n')
 		fh.write('run_program("/sbin/busybox", "mount", "/system");\n')
-	if len(commandsToRun) > 0 or len(dataFiles) > 0:
+	if len(dataFiles) > 0:
 		fh.write('ui_print("Mounting data...");\n')
 		fh.write('run_program("/sbin/busybox", "mount", "/data");\n')
 	if len(filesToRemove) > 0:
@@ -265,36 +254,21 @@ def buildZip():
 		fh.write('package_extract_dir("data", "/data");\n')
 		for file in dataFiles:
 			fh.write('set_perm(0, 0, 0644, "/' + file + '");\n')
-#	if len(commandsToRun) > 0:
-#		fh.write('ui_print("Running custom commands...");\n')
-#		fh.write('package_extract_file("commands.sh", "/tmp/commands.sh");\n')
-#		fh.write('set_perm(0, 0777, 0777, "/tmp/install.sh");\n')
-#		fh.write('run_program("/tmp/install.sh");\n')
-	if len(commandsToRun) > 0 or len(dataFiles) > 0:
+	if len(dataFiles) > 0:
 		fh.write('ui_print("Unmounting data...");\n')
 		fh.write('run_program("/sbin/busybox", "umount", "/data");\n')
-	if len(commandsToRun) > 0 or len(sysFiles) > 0:
+	if len(sysFiles) > 0:
 		fh.write('ui_print("Unmounting system...");\n')
 		fh.write('run_program("/sbin/busybox", "umount", "/system");\n')
-#	if len(commandsToRun) > 0:
-#		fh.write('ui_print("Unmounting rootfs...");\n')
-#		fh.write('run_program("/sbin/busybox", "umount", "/");\n')
 	fh.write('ui_print("----------");\n')
 	fh.write('ui_print("Installation complete!");\n')
 	fh.close()
 	print "New updater-script has been written!"
-	# Command script creation
-#	fh = open('commands.sh','wb')
-#	fh.write('#!/sbin/sh\n')
-#	for file in commandsToRun:
-#		fh.write(file + '\n')
-#	fh.close()
-#	print "New commands.sh has been written!"
 	# Open the log file to save the output of the commands piped below.
 	fh = open('log.txt','a+b')
 	# TODO: Add error catching down here. Also logging.
 	# Create the zip file!
-	makeZipFile(fileName+'.zip',['commands.sh','data','META-INF','system'])
+	makeZipFile(fileName+'.zip',['data','META-INF','system'])
 	print "Zip file created!"
 	pipe = Popen(['java', '-jar', 'signapk.jar', 'certificate.pem', 'key.pk8', fileName+'.zip', fileName+'_signed.zip'], stdout=PIPE, stderr=PIPE, stdin=PIPE)
 	output = pipe.stdout.read()
@@ -303,47 +277,9 @@ def buildZip():
 	print "Zip file signed!"
 	fh.close()
 
-### Editor for the commandsToRun[] variable. TODO: Subject for removal.
-def runCommands():
-	global filesToRemove, commandsToRun
-	reprint = True
-	while True:
-		if reprint == True:
-			cls()
-			print \
-				"-------------------------------------------------\n",\
-				"                 Commands to run\n",\
-				"-------------------------------------------------\n"
-			if len(commandsToRun) > 0:
-				i = 1
-				for file in commandsToRun:
-					print " " + str(i) + ". " + file
-					i += 1
-			else:
-				i = 0
-				print " There are currently no commands in this list."
-			print \
-				"\n-------------------------------------------------\n",\
-				"\n Please enter a command to add it to your list.",\
-				"\n To remove a command from the list, enter the",\
-				"\n    number next to it.",\
-				"\n To go back to the main menu, enter 'Q'.\n"
-		entry = raw_input("Please make your entry: ")
-		reprint = True
-		if entry.isdigit() == True:
-			if int(entry) in range(1,len(commandsToRun)+1):
-				commandsToRun.pop(int(entry)-1)
-			else:
-				reprint = False
-				print "That is not a valid number in the list."
-		elif entry in ('q','Q'):
-			return True
-		else:
-			commandsToRun.append(entry)
-
 ### Editor for the filesToRemove[] variable.
 def removeFiles():
-	global filesToRemove, commandsToRun
+	global filesToRemove
 	reprint = True
 	while True:
 		if reprint == True:
@@ -396,7 +332,6 @@ def mainMenu():
 				"                 TweakZip v" + __version__ + "\n",\
 				"-------------------------------------------------\n\n",\
 				" 1. Files to be removed\n",\
-				" 2. Commands to be run at first boot [Disabled]\n",\
 				"\n",\
 				" 3. Build .zip file\n",\
 				"\n",\
@@ -410,10 +345,6 @@ def mainMenu():
 		reprint = True	# reset's reprint to its default value
 		if entry == '1':
 			removeFiles()
-		elif entry == '2':
-			#runCommands()	# Disabled... Subject for removal if no working method for this is found.
-			reprint = False
-			print "This is currently not available!"
 		elif entry == '3':
 			reprint = False
 			buildZip()
