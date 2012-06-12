@@ -15,10 +15,15 @@ You can compile a `tweakZip.exe` file for Windows with py2exe using the included
 Files in this project
 ----------------------
 tweakZip.py
+
 - The main source file for tweakZip.
+
 setup.py
+
 - A setup script for compiling this project with py2exe.
-README
+
+README.md
+
 - This readme file.
 
 Requirements
@@ -26,10 +31,12 @@ Requirements
 To use tweakZip, You must have...
 
 On Linux / OSX:
+
 1. Java
 2. Python 2.7 (Most likely will be included with your OS)
 
 On Windows:
+
 1. Java
 2. Python 2.7 (Not required if running a pre-compiled .exe file)
 
@@ -39,5 +46,7 @@ If you would like to compile a standalone executable version, you must be using 
 Compiling a standalone exe (Windows Required)
 ----------------------------------------------
 To compile a standalone executable version of tweakZip, simply run this command:
-	- python setup.py py2exe
+
+	python setup.py py2exe
+
 The resulting tweakZip.exe file may be used on systems that do not have Python installed.
