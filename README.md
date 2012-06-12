@@ -15,11 +15,11 @@ You can compile a `tweakZip.exe` file for Windows with py2exe using the included
 Files in this project
 ----------------------
 tweakZip.py
-	- The main source file for tweakZip.
+- The main source file for tweakZip.
 setup.py
-	- A setup script for compiling this project with py2exe.
+- A setup script for compiling this project with py2exe.
 README
-	- This readme file.
+- This readme file.
 
 Requirements
 -------------
